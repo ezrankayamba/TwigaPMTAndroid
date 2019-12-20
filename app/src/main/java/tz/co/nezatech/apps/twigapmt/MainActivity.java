@@ -24,6 +24,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import tz.co.nezatech.apps.twigapmt.api.PMTService;
 import tz.co.nezatech.apps.twigapmt.model.Project;
 import tz.co.nezatech.apps.twigapmt.receiver.GeofenceReceiver;
+import tz.co.nezatech.apps.twigapmt.util.Constants;
+import tz.co.nezatech.apps.twigapmt.util.PermissionUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,16 +36,23 @@ public class MainActivity extends AppCompatActivity {
     private List<Project> projects;
     private PendingIntent geofencePendingIntent;
     private static Retrofit retrofit = null;
+    private String authToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        authToken = getIntent().getStringExtra(Constants.OAUTH2_TOKEN_KEY);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (authToken == null) {
+            Intent intent = new Intent(getBaseContext(), LoginActivity.class);
+            startActivity(intent);
+            return;
+        }
         init();
         createNotificationChannel();
     }

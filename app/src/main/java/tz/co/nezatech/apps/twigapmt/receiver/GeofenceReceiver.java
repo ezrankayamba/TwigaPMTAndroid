@@ -12,8 +12,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
-import tz.co.nezatech.apps.twigapmt.Constants;
 import tz.co.nezatech.apps.twigapmt.R;
+import tz.co.nezatech.apps.twigapmt.util.Constants;
 
 import java.util.Optional;
 

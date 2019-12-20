@@ -1,4 +1,4 @@
-package tz.co.nezatech.apps.twigapmt;
+package tz.co.nezatech.apps.twigapmt.util;
 
 import android.content.pm.PackageManager;
 
