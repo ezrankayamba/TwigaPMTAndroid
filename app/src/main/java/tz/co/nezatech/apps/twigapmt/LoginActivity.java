@@ -1,108 +1,123 @@
 package tz.co.nezatech.apps.twigapmt;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import tz.co.nezatech.apps.twigapmt.api.PMTService;
+import tz.co.nezatech.apps.twigapmt.model.TokenResponse;
 import tz.co.nezatech.apps.twigapmt.util.Constants;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = LoginActivity.class.getName();
+    private Button loginButton;
+    boolean usrValid = false;
+    boolean pwdValid = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        final EditText usernameEditText = findViewById(R.id.username);
-        final EditText passwordEditText = findViewById(R.id.password);
-        final Button loginButton = findViewById(R.id.login);
+        final EditText usrText = findViewById(R.id.username);
+        usrValid = !usrText.getText().toString().isEmpty();
+        usrText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                usrValid = s.length() > 3;
+                loginButton.setEnabled(usrValid && pwdValid);
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        final EditText pwdText = findViewById(R.id.password);
+        pwdValid = !pwdText.getText().toString().isEmpty();
+        pwdText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                pwdValid = s.length() > 3;
+                loginButton.setEnabled(usrValid && pwdValid);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        loginButton = findViewById(R.id.login);
+        loginButton.setEnabled(usrValid && pwdValid);
         loginButton.setOnClickListener(v -> {
-            login(usernameEditText.getText().toString(), passwordEditText.getText().toString());
+            login(usrText.getText().toString(), pwdText.getText().toString());
         });
     }
 
+    private static Retrofit retrofit = null;
+
     private void login(String username, String password) {
-        new LoginTaskTask(username, password, findViewById(R.id.loading)).execute();
-    }
-
-    private static class LoginTaskTask extends AsyncTask<Void, Void, String> {
-        private String username;
-        private String password;
-        private ProgressBar progressBar;
-
-        public LoginTaskTask(String username, String password, ProgressBar progressBar) {
-            this.username = username;
-            this.password = password;
-            this.progressBar = progressBar;
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(Constants.BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
         }
+        PMTService pmtService = retrofit.create(PMTService.class);
+        Call<TokenResponse> call = pmtService.getToken(username, password, "password", Constants.OAUTH2_CLIENT_ID, Constants.OAUTH2_CLIENT_SECRET);
+        ProgressBar progressBar = findViewById(R.id.loading);
+        progressBar.setVisibility(View.VISIBLE);
+        call.enqueue(new Callback<TokenResponse>() {
+            @Override
+            public void onResponse(Call<TokenResponse> call, Response<TokenResponse> response) {
+                progressBar.setVisibility(View.GONE);
+                TokenResponse body = response.body();
+                if (body != null) {
+                    Log.d(TAG, "Success login: " + body.getAccessToken());
+                    Snackbar.make(loginButton, "Successfully logged in", Snackbar.LENGTH_LONG).show();
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
-        }
+                    SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(Constants.CHANNEL_ID, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPrefs.edit();
+                    editor.putString(Constants.OAUTH2_TOKEN_KEY, body.getAccessToken());
+                    editor.putString(Constants.OAUTH2_REFRESH_TOKEN_KEY, body.getRefreshToken());
+                    editor.putString(Constants.OAUTH2_TOKEN_TYPE_KEY, body.getTokenType());
+                    editor.commit();
 
-        @Override
-        protected String doInBackground(Void... params) {
-            HttpsURLConnection conn = null;
-            String response = "";
-            try {
-                URL url = new URL(Constants.BASE_URL + "api/oauth2/token/");
-                conn = (HttpsURLConnection ) url.openConnection();
-                conn.addRequestProperty("client_id", Constants.OAUTH2_CLIENT_ID);
-                conn.addRequestProperty("client_secret", Constants.OAUTH2_CLIENT_SECRET);
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-                conn.setRequestMethod("POST");
-
-                String body = String.format("grant_type=password&username=%s&password=%s", username, password);
-                Log.d(TAG, "Body: " + body);
-                OutputStream out = new BufferedOutputStream(conn.getOutputStream());
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-                writer.write(body);
-                writer.flush();
-
-                int code = conn.getResponseCode();
-                Log.d(TAG, "Response Code: "+code);
-                BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    Log.i(TAG, line);
-                    response += line;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Log.e(TAG, "Failed login: " + response.message());
+                    Snackbar.make(loginButton, "Login failed. Try again with correct credentials", Snackbar.LENGTH_LONG).show();
                 }
             }
 
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            progressBar.setVisibility(View.GONE);
-            Log.d(TAG, "Response: " + s);
-        }
+            @Override
+            public void onFailure(Call<TokenResponse> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Log.e(TAG, "Failed login");
+                Snackbar.make(loginButton, "Login failed. Try again with correct credentials", Snackbar.LENGTH_LONG).show();
+            }
+        });
     }
-
 }

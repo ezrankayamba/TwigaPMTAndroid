@@ -2,7 +2,7 @@
     <string name="app_name">TwigaPMT</string>
     <string name="channel_name">TwigaPMT</string>
     <string name="channel_description">Notifications from TwigaPMT platform for projects alert</string>
-    <string name="start_alerts">Start Alerts</string>
+    <string name="start_alerts">Make Project Geofences</string>
     <string name="title_activity_login">Sign in</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>

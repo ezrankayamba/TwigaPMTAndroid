@@ -5,15 +5,30 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        tools:context=".MainActivity" android:layout_gravity="center_vertical">
 
 
     <Button
             android:text="@string/start_alerts"
             android:layout_height="48dp"
-            android:id="@+id/btnMonitor"
+            android:id="@+id/btnStart"
             android:layout_width="0dp"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginStart="24dp" android:layout_marginEnd="24dp"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="24dp" android:layout_marginEnd="24dp"
+            app:layout_constraintHorizontal_bias="0.0" app:layout_constraintTop_toTopOf="@+id/guideline"
+            android:layout_marginTop="176dp"/>
+    <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/regionSelect" app:layout_constraintTop_toTopOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="24dp" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="24dp"
+            app:layout_constraintHorizontal_bias="0.0" android:layout_marginTop="104dp"
+            android:background="@android:color/holo_blue_light"/>
+    <androidx.constraintlayout.widget.Guideline android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                                android:id="@+id/guideline" app:layout_constraintGuide_begin="85dp"
+                                                android:orientation="horizontal"
+    />
 </androidx.constraintlayout.widget.ConstraintLayout>
