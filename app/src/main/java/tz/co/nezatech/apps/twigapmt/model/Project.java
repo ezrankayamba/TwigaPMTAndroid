@@ -7,7 +7,9 @@ public class Project {
     String name;
     @SerializedName("region_name")
     String regionName;
+    @SerializedName("latitude")
     float lat;
+    @SerializedName("longitude")
     float lng;
     int id;
     @SerializedName("region_id")

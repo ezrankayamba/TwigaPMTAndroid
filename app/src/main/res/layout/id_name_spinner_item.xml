@@ -1,4 +1,16 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-          android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/text1"
-          android:text="Text"
-          android:padding="8dp" android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal" android:gravity="center">
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/text1"
+            android:text="Text"
+            android:padding="8dp" android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:layout_weight="1"/>
+    <ImageView
+            android:src="@drawable/ic_select_item_24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+</LinearLayout>

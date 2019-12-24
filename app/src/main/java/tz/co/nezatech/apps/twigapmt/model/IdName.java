@@ -1,6 +1,8 @@
 package tz.co.nezatech.apps.twigapmt.model;
 
-public class IdName {
+import java.io.Serializable;
+
+public class IdName implements Serializable {
     int id;
     String name;
 
