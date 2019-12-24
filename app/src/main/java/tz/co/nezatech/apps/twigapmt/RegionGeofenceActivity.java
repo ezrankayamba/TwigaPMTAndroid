@@ -5,7 +5,11 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.util.Log;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
@@ -49,6 +53,7 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
     private List<Project> projects;
     private PendingIntent geofencePendingIntent;
     private SupportMapFragment mapFragment;
+    LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +62,8 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         region = (IdName) getIntent().getSerializableExtra(Constants.EXTRAS_REGION);
         if (region != null) {
@@ -98,9 +104,43 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
         pmtService = retrofit.create(PMTService.class);
     }
 
+    Marker myLocationMarker;
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                LatLng pos = new LatLng(location.getLatitude(), location.getLongitude());
+                if (mMap != null) {
+                    if (myLocationMarker != null) {
+                        myLocationMarker.setPosition(pos);
+                    }
+                    myLocationMarker = mMap.addMarker(new MarkerOptions()
+                            .position(pos)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                }
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        });
 
 
         Call<List<Project>> call = pmtService.listProjects(String.format("%s %s", tokenType, accessToken), region.getId());
@@ -142,27 +182,13 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
             return;
         }
 
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        List<Geofence> geofences = withLoc.stream().map(prj ->
-                new Geofence.Builder()
-                        .setRequestId(prj.getId() + "")
-                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                        .setCircularRegion(prj.getLat(), prj.getLng(), Constants.GEOFENCE_RADIUS)
-                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                        .build()).collect(Collectors.toList());
+
         Stream<MarkerOptions> markers = withLoc.stream().map(project ->
                 new MarkerOptions()
                         .position(new LatLng(project.getLat(), project.getLng()))
                         .title(project.getName())
         );
-        List<CircleOptions> circles = withLoc.stream().map(project ->
-                new CircleOptions()
-                        .center(new LatLng(project.getLat(), project.getLng()))
-                        .radius(Constants.GEOFENCE_RADIUS)
-                        .fillColor(0x40ff0000)
-                        .strokeColor(Color.TRANSPARENT)
-                        .strokeWidth(2)).collect(Collectors.toList());
+
         LatLngBounds.Builder b = new LatLngBounds.Builder();
         for (MarkerOptions m : markers.collect(Collectors.toList())) {
             b.include(m.getPosition());
@@ -173,6 +199,7 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
                     .strokeColor(Color.BLUE)
                     .strokeWidth(2));
         }
+
         LatLngBounds bounds = b.build();
         LatLng center = bounds.getCenter();
         if (withLoc.size() > 1) {
@@ -183,7 +210,16 @@ public class RegionGeofenceActivity extends AppCompatActivity implements OnMapRe
             mMap.animateCamera(cu);
         }
 
-
+        List<Geofence> geofences = withLoc.stream().map(prj ->
+                new Geofence.Builder()
+                        .setRequestId(prj.getId() + Constants.PROJECT_ID_NAME_SEP + prj.getName())
+                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                        .setCircularRegion(prj.getLat(), prj.getLng(), Constants.GEOFENCE_RADIUS)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .build()).collect(Collectors.toList());
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(geofences);
         GeofencingRequest geofencingRequest = builder.build();
 

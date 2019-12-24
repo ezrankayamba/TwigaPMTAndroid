@@ -6,7 +6,7 @@ public class Constants {
     public static final String CHANNEL_ID = "tz.co.nezatech.apps.twigapmt";
     public static final String BASE_URL = "https://pmt.nezatech.co.tz/";
     public static final String BASE_URL_TEST = "https://3365a343.ngrok.io/";
-    public static final float GEOFENCE_RADIUS = 1000;
+    public static final float GEOFENCE_RADIUS = 10000;
     public static final String OAUTH2_CLIENT_ID = "wMIfgnY0uBU2LTgDPsO7khsmlCDrl1Ydr4KFw7W7";
     public static final String TEST_OAUTH2_CLIENT_ID = "4788LoyZXfBKhcIW4JqaV8EVqm6JbKjtYXi70apy";
     public static final String OAUTH2_CLIENT_SECRET = "wasVdojAVlzH3OllWf8sxdIKebOl0XkC19i7K4TnHs8zRT0ylTVS36qHy88OGYtT7uvd3YbjTzbktbtziADDCnmH1jK4YEwjHQh65sOf1DAJyg102wzo2W5fID3khixM";
@@ -19,4 +19,6 @@ public class Constants {
     public static final String OAUTH2_TOKEN_TYPE_KEY = "OAUTH2_TOKEN_TYPE_KEY";
     public static final String EXTRAS_REGION = "EXTRAS_REGION";
     public static final String[] PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION};
+    public static final String EXTRAS_PROJECT_ID = "EXTRAS_PROJECT_ID";
+    public static final String PROJECT_ID_NAME_SEP = "::::";
 }

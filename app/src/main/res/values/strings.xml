@@ -15,4 +15,8 @@
     <string name="action_sign_in2">Sign In</string>
     <string name="prompt_username">Username</string>
     <string name="title_activity_region_geofence" tools:ignore="ExtraTranslation">Map</string>
+
+    <string name="title_activity_project_details">ProjectDetailsActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>
