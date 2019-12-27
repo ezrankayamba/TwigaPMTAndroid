@@ -100,7 +100,12 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<List<IdName>> call, Response<List<IdName>> response) {
                 List<IdName> list = response.body();
                 if (list == null) {
-                    Snackbar.make(recyclerView, "Fetching regions failed", Snackbar.LENGTH_LONG).show();
+                    int code = response.code();
+                    Snackbar.make(recyclerView, "Fetching regions failed. Response code: " + code, Snackbar.LENGTH_LONG).show();
+                    if (code == 401) {
+                        Intent intent = new Intent(getBaseContext(), LoginActivity.class);
+                        startActivity(intent);
+                    }
                 } else {
                     Snackbar.make(recyclerView, "Successfully fetched regions", Snackbar.LENGTH_LONG).show();
                     mAdapter = new IdNameAdapter(list.toArray(new IdName[0]));
